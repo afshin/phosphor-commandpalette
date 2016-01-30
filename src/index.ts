@@ -363,7 +363,6 @@ class CommandPalette extends Widget {
    * @param commands - An array of `CommandItem` instances.
    */
   add(commands: CommandItem[]): void {
-    let registrations: string[] = [];
     let constructor = this.constructor as typeof CommandPalette;
     commands.forEach(item => {
       let id = `palette-${++registrationSeed}`;
@@ -371,8 +370,6 @@ class CommandPalette extends Widget {
       constructor.idProperty.set(item, id);
       // Add the item to the private registry.
       this._registry[id] = item;
-      // Add the item to the list of registrations to dispose later.
-      registrations.push(id);
     });
     this._bufferAllItems();
   }
