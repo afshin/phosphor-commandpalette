@@ -425,7 +425,7 @@ class CommandPalette extends Widget {
   search(query: string): void {
     let searchableItems = Object.keys(this._registry).reduce((acc, id) => {
       let item = this._registry[id];
-      let title = item.text;
+      let title = [item.category, item.text].join(' ');
       let caption = item.caption;
       acc.push({ id, title, caption });
       return acc;
