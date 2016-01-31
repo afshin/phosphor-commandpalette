@@ -339,8 +339,6 @@ class CommandPalette extends Widget {
 
   /**
    * Construct a new command palette.
-   *
-   * @param commandRegistry - A command registry instance
    */
   constructor() {
     super();
