@@ -135,7 +135,7 @@ const FN_KEYS: { [key: string]: void } = {
 /**
  * A singleton instance of the fuzzy matcher used for search results.
  */
-const matcher = new FuzzyMatcher('title', 'caption');
+const matcher = new FuzzyMatcher('primary', 'secondary');
 
 /**
  * The seed value for registration IDs that are generated for palette items.
@@ -343,6 +343,7 @@ class CommandPalette extends Widget {
   constructor() {
     super();
     this.addClass(PALETTE_CLASS);
+    Command.changed.connect(this._onCommandChanged, this);
   }
 
   /**
@@ -352,6 +353,7 @@ class CommandPalette extends Widget {
     Object.keys(this._registry).forEach(id => { clearPropertyData(id); });
     this._buffer.length = 0;
     this._registry = null;
+    Command.changed.disconnect(this._onCommandChanged, this);
     super.dispose();
   }
 
@@ -369,7 +371,7 @@ class CommandPalette extends Widget {
       // Add the item to the private registry.
       this._registry[id] = item;
     });
-    this._bufferAllItems();
+    this._bufferItems(Object.keys(this._registry));
   }
 
   /**
@@ -412,7 +414,7 @@ class CommandPalette extends Widget {
       delete this._registry[id];
       clearPropertyData(item);
     });
-    this._bufferAllItems();
+    this._bufferItems(Object.keys(this._registry));
   }
 
   /**
@@ -423,9 +425,10 @@ class CommandPalette extends Widget {
   search(query: string): void {
     let searchableItems = Object.keys(this._registry).reduce((acc, id) => {
       let item = this._registry[id];
-      let title = [item.category, item.text].join(' ');
-      let caption = item.caption;
-      acc.push({ id, title, caption });
+      // Append title to caption transparently as the primary search string.
+      let primary = [item.text, item.caption].join(' ');
+      let secondary = item.category;
+      acc.push({ id, primary, secondary });
       return acc;
     }, [] as ICommandSearchItem[]);
     this._bufferSearchResults(matcher.search(query, searchableItems));
@@ -466,11 +469,10 @@ class CommandPalette extends Widget {
     this.contentNode.textContent = '';
     // Render the buffer.
     this._buffer.forEach(section => this._renderSection(section));
-    // Activate the first result if search result.
-    if (this._searchResult) {
-      // Reset the flag.
-      this._searchResult = false;
-      this._activateFirst();
+    // If there is a post-update handler, run it.
+    if (this._onceAfterUpdate) {
+      this._onceAfterUpdate.call(this);
+      this._onceAfterUpdate = null;
     }
   }
 
@@ -567,14 +569,14 @@ class CommandPalette extends Widget {
 
   /**
    * Set the buffer to all registered items.
+   *
+   * @param ids - The list of registration ids to buffer.
    */
-  private _bufferAllItems(): void {
+  private _bufferItems(ids: string[]): void {
     let sections: ICommandPaletteSection[] = [];
     // Group items by category into sections.
-    Object.keys(this._registry).forEach(id => {
+    ids.forEach(id => {
       let item = this._registry[id];
-      // Only visible command items should be buffered.
-      if (!item.isVisible) return;
       // Discover whether a section with this category already exists.
       let sectionIndex = arrays.findIndex(sections, section => {
         return section.title === item.category;
@@ -600,8 +602,6 @@ class CommandPalette extends Widget {
   private _bufferSearchResults(items: ICommandMatchResult[]): void {
     this._buffer = items.reduce((acc, val, idx) => {
       let item = this._registry[val.id];
-      // Only visible command items should be buffered.
-      if (!item.isVisible) return;
       let heading = item.category;
       if (!idx) {
         acc.push({ title: heading, registrations: [val.id] });
@@ -616,8 +616,9 @@ class CommandPalette extends Widget {
       }
       return acc;
     }, [] as ICommandPaletteSection[]);
-    // If there are search results, set the search flag used for activation.
-    if (this._buffer.length) this._searchResult = true;
+    // If there are search results, select the first item.
+    // If isVisible is false for all items, this will be a no-op.
+    if (this._buffer.length) this._onceAfterUpdate = this._activateFirst;
     this.update();
   }
 
@@ -662,7 +663,9 @@ class CommandPalette extends Widget {
         // If the search value has not changed, do nothing.
         if (newValue === oldValue) return;
         // If the search value has changed to empty, render everything.
-        if (newValue === '') return this._bufferAllItems();
+        if (newValue === '') {
+          return this._bufferItems(Object.keys(this._registry));
+        }
         // Otherwise, search for the new value.
         this.search(newValue);
       });
@@ -724,13 +727,45 @@ class CommandPalette extends Widget {
   }
 
   /**
+   * A handler invoked on a command changed signal.
+   */
+  private _onCommandChanged(sender: typeof Command, args: Command): void {
+    let staleBuffer = this._buffer.some(section => {
+      return section.registrations
+        .some(id => args === this._registry[id].command);
+    });
+    if (!staleBuffer) return;
+    // Remember the currently active node.
+    let active = this._findActive();
+    let id = active ? active.getAttribute(REGISTRATION_ID) : null;
+    // Re-buffer, removing any newly invisible commands and re-categorizing.
+    let ids = this._buffer.reduce((acc, section) => {
+      return acc.concat(section.registrations);
+    }, [] as string[]);
+    this._bufferItems(ids);
+    // Reset state.
+    this._onceAfterUpdate = () => {
+      // Reactivate the correct node after re-render.
+      if (id) {
+        let selector = `[${REGISTRATION_ID}="${id}"]`;
+        let target = this.node.querySelector(selector) as HTMLElement;
+        if (target && this._registry[id].isEnabled) this._activateNode(target);
+      }
+    }
+    this.update();
+  }
+
+  /**
    * Render a section and its commands.
    *
    * @param section - The palette section being rendered.
    */
   private _renderSection(section: ICommandPaletteSection): void {
     let constructor = this.constructor as typeof CommandPalette;
-    let items = section.registrations.map(id => this._registry[id]);
+    let items = section.registrations
+      .map(id => this._registry[id]).filter(item => item.isVisible);
+    // If none of the items are visible, do not render the section.
+    if (!items.length) return;
     let fragment = constructor.createSectionFragment(section.title, items);
     this.contentNode.appendChild(fragment);
   }
@@ -748,6 +783,6 @@ class CommandPalette extends Widget {
   }
 
   private _buffer: ICommandPaletteSection[] = [];
+  private _onceAfterUpdate: () => void = null;
   private _registry: { [id: string]: CommandItem; } = Object.create(null);
-  private _searchResult: boolean = false;
 }

@@ -56,13 +56,13 @@ interface ICommandSearchItem {
    */
   id: string;
   /**
-   * The command title.
+   * The primary search string.
    */
-  title: string;
+  primary: string;
   /**
-   * The command caption.
+   * The secondary search string.
    */
-  caption?: string;
+  secondary?: string;
 }
 
 /**
@@ -130,8 +130,8 @@ class FuzzyMatcher extends CommandMatcher {
    * should leak outside of this public API.
    */
   search(query: string, commands: ICommandSearchItem[]): ICommandMatchResult[] {
-    // Even though captions are optional, FuzzySearch needs them to be defined.
-    commands.forEach(item => item.caption = item.caption || '');
+    // Even though secondary strings are optional, they need to be defined.
+    commands.forEach(item => item.secondary = item.secondary || '');
     let primarySearch = new FuzzySearch(commands, {
       'minimumScore': 300,
       'termPath': this._primary
