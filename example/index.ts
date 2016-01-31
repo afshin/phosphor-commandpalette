@@ -39,20 +39,20 @@ const p1Commands = [
 ];
 
 const p2Commands = [
-  createCommand('Romance languages', 'Italian', ''),
-  createCommand('Romance languages', 'Romanian', ''),
-  createCommand('Romance languages', 'French', ''),
-  createCommand('Romance languages', 'Spanish', ''),
-  createCommand('Romance languages', 'Portuguese', ''),
-  createCommand('Germanic languages', 'German', ''),
-  createCommand('Germanic languages', 'English', ''),
-  createCommand('Germanic languages', 'Danish', ''),
-  createCommand('Germanic languages', 'Swedish', ''),
-  createCommand('Germanic languages', 'Icelandic', ''),
-  createCommand('Germanic languages', 'Norwegian', ''),
-  createCommand('Germanic languages', 'Dutch', ''),
-  createCommand('Language isolates', 'Basque', ''),
-  createCommand('Language isolates', 'Korean', '')
+  createCommand('Romance languages', 'Italian', 'lingua italiana'),
+  createCommand('Romance languages', 'Romanian', 'limba română'),
+  createCommand('Romance languages', 'French', 'le français'),
+  createCommand('Romance languages', 'Spanish', 'español'),
+  createCommand('Romance languages', 'Portuguese', 'língua portuguesa'),
+  createCommand('Germanic languages', 'German', 'Deutsch'),
+  createCommand('Germanic languages', 'English', 'English'),
+  createCommand('Germanic languages', 'Danish', 'dansk sprog'),
+  createCommand('Germanic languages', 'Swedish', 'svenska'),
+  createCommand('Germanic languages', 'Icelandic', 'íslenska'),
+  createCommand('Germanic languages', 'Norwegian', 'norsk'),
+  createCommand('Germanic languages', 'Dutch', 'Nederlands'),
+  createCommand('Language isolates', 'Basque', 'Euskara'),
+  createCommand('Language isolates', 'Korean', '한국어/조선말')
 ];
 
 var timeout: number;
@@ -75,7 +75,9 @@ function createCommand(category: string, title: string, caption: string): Comman
 function main() {
   // Populate left palette commands.
   p1.add(p1Commands);
+  p1.id = 'civilizations';
   p2.add(p2Commands);
+  p2.id = 'languages';
   // Populate palettes panel.
   BoxPanel.setStretch(p1, 1);
   BoxPanel.setStretch(p2, 1);
