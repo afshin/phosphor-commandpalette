@@ -472,6 +472,7 @@ class CommandPalette extends Widget {
     // If there is a post-update handler, run it.
     if (this._onceAfterUpdate) {
       this._onceAfterUpdate.call(this);
+      // Post-update handlers only run once.
       this._onceAfterUpdate = null;
     }
   }
@@ -570,12 +571,12 @@ class CommandPalette extends Widget {
   /**
    * Buffer a list of registration IDs, grouping them by category.
    *
-   * @param ids - The list of registration ids to buffer.
+   * @param registrations - The list of registration ids to buffer.
    */
-  private _bufferItems(ids: string[]): void {
+  private _bufferItems(registrations: string[]): void {
     let sections: ICommandPaletteSection[] = [];
     // Group items by category into sections.
-    ids.forEach(id => {
+    registrations.forEach(id => {
       let item = this._registry[id];
       // Discover whether a section with this category already exists.
       let sectionIndex = arrays.findIndex(sections, section => {
@@ -737,19 +738,19 @@ class CommandPalette extends Widget {
     if (!staleBuffer) return;
     // Remember the currently active node.
     let active = this._findActive();
-    let id = active ? active.getAttribute(REGISTRATION_ID) : null;
+    let current = active ? active.getAttribute(REGISTRATION_ID) : null;
     // Re-buffer, removing any newly invisible commands and re-categorizing.
-    let ids = this._buffer.reduce((acc, section) => {
-      return acc.concat(section.registrations);
-    }, [] as string[]);
-    this._bufferItems(ids);
+    let registrations = this._buffer.map(section => section.registrations)
+      .reduce((acc, ids) => { return acc.concat(ids); }, [] as string[]);
+    this._bufferItems(registrations);
     // Reset state.
     this._onceAfterUpdate = () => {
       // Reactivate the correct node after re-render.
-      if (id) {
-        let selector = `[${REGISTRATION_ID}="${id}"]`;
+      if (current) {
+        let selector = `[${REGISTRATION_ID}="${current}"]`;
         let target = this.node.querySelector(selector) as HTMLElement;
-        if (target && this._registry[id].isEnabled) this._activateNode(target);
+        if (!target || !this._registry[current].isEnabled) return;
+        this._activateNode(target);
       }
     }
     this.update();
