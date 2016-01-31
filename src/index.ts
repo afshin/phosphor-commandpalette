@@ -420,7 +420,7 @@ class CommandPalette extends Widget {
   /**
    * Search for a specific query string among command titles and captions.
    *
-   * @param query - The query string
+   * @param query - The query string.
    */
   search(query: string): void {
     let searchableItems = Object.keys(this._registry).reduce((acc, id) => {
@@ -568,7 +568,7 @@ class CommandPalette extends Widget {
   }
 
   /**
-   * Set the buffer to all registered items.
+   * Buffer a list of registration IDs, grouping them by category.
    *
    * @param ids - The list of registration ids to buffer.
    */
@@ -595,9 +595,9 @@ class CommandPalette extends Widget {
   }
 
   /**
-   * Set the buffer to search results.
+   * Buffer a list of search results without regrouping them.
    *
-   * @param items - The search results to be buffered.
+   * @param items - The search results to buffer.
    */
   private _bufferSearchResults(items: ICommandMatchResult[]): void {
     this._buffer = items.reduce((acc, val, idx) => {
