@@ -351,7 +351,7 @@ class CommandPalette extends Widget {
    */
   dispose(): void {
     Object.keys(this._registry).forEach(id => { clearPropertyData(id); });
-    this._buffer.length = 0;
+    this._buffer = null;
     this._registry = null;
     Command.changed.disconnect(this._onCommandChanged, this);
     super.dispose();
@@ -371,6 +371,8 @@ class CommandPalette extends Widget {
       // Add the item to the private registry.
       this._registry[id] = item;
     });
+    this._saveState();
+    // Buffer every item, even if the palette was displaying search results.
     this._bufferItems(Object.keys(this._registry));
   }
 
@@ -408,13 +410,25 @@ class CommandPalette extends Widget {
    */
   remove(commands: CommandItem[]): void {
     let constructor = this.constructor as typeof CommandPalette;
+    let removed: { [id: string]: void } = Object.create(null);
     commands.forEach(item => {
       let id = constructor.idProperty.get(item);
       if (!id) return;
+      removed[id] = null;
       delete this._registry[id];
       clearPropertyData(item);
     });
-    this._bufferItems(Object.keys(this._registry));
+    // Repopulate the buffer, filtering out any removed items.
+    let registrations = this._buffer.sections
+      .map(section => section.registrations)
+      .reduce((acc, ids) => { return acc.concat(ids); }, [] as string[])
+      .filter(id => !(id in removed));
+    this._saveState();
+    if (this._buffer.search) {
+      this._bufferSearchItems(registrations);
+    } else {
+      this._bufferItems(registrations);
+    }
   }
 
   /**
@@ -431,7 +445,10 @@ class CommandPalette extends Widget {
       acc.push({ id, primary, secondary });
       return acc;
     }, [] as ICommandSearchItem[]);
-    this._bufferSearchResults(matcher.search(query, searchableItems));
+    let registrations = matcher.search(query, searchableItems).map(v => v.id);
+    // When search results render, select the first item.
+    this._onceAfterUpdate = this._activateFirst;
+    this._bufferSearchItems(registrations);
   }
 
   /**
@@ -468,7 +485,7 @@ class CommandPalette extends Widget {
     // Clear the node.
     this.contentNode.textContent = '';
     // Render the buffer.
-    this._buffer.forEach(section => this._renderSection(section));
+    this._buffer.sections.forEach(section => this._renderSection(section));
     // If there is a post-update handler, run it.
     if (this._onceAfterUpdate) {
       this._onceAfterUpdate.call(this);
@@ -488,7 +505,8 @@ class CommandPalette extends Widget {
       if (direction === ScrollDirection.Down) return this._activateFirst();
       if (direction === ScrollDirection.Up) return this._activateLast();
     }
-    let registrations = this._buffer.map(section => section.registrations)
+    let registrations = this._buffer.sections
+      .map(section => section.registrations)
       .reduce((acc, ids) => { return acc.concat(ids); }, [] as string[]);
     let current = registrations.indexOf(active.getAttribute(REGISTRATION_ID));
     let newActive: number;
@@ -590,7 +608,8 @@ class CommandPalette extends Widget {
         sections[sectionIndex].registrations.push(id);
       }
     });
-    this._buffer = sections;
+    this._buffer.search = false;
+    this._buffer.sections = sections;
     this._sort();
     this.update();
   }
@@ -598,28 +617,26 @@ class CommandPalette extends Widget {
   /**
    * Buffer a list of search results without regrouping them.
    *
-   * @param items - The search results to buffer.
+   * @param registrations - The list of registration ids to buffer.
    */
-  private _bufferSearchResults(items: ICommandMatchResult[]): void {
-    this._buffer = items.reduce((acc, val, idx) => {
-      let item = this._registry[val.id];
+  private _bufferSearchItems(registrations: string[]): void {
+    this._buffer.search = true;
+    this._buffer.sections = registrations.reduce((acc, id, idx) => {
+      let item = this._registry[id];
       let heading = item.category;
       if (!idx) {
-        acc.push({ title: heading, registrations: [val.id] });
+        acc.push({ title: heading, registrations: [id] });
         return acc;
       }
       if (acc[acc.length - 1].title === heading) {
         // Add to the last group.
-        acc[acc.length - 1].registrations.push(val.id);
+        acc[acc.length - 1].registrations.push(id);
       } else {
         // Create a new group.
-        acc.push({ title: heading, registrations: [val.id] });
+        acc.push({ title: heading, registrations: [id] });
       }
       return acc;
     }, [] as ICommandPaletteSection[]);
-    // If there are search results, select the first item.
-    // If isVisible is false for all items, this will be a no-op.
-    if (this._buffer.length) this._onceAfterUpdate = this._activateFirst;
     this.update();
   }
 
@@ -731,18 +748,30 @@ class CommandPalette extends Widget {
    * A handler invoked on a command changed signal.
    */
   private _onCommandChanged(sender: typeof Command, args: Command): void {
-    let staleBuffer = this._buffer.some(section => {
+    let staleBuffer = this._buffer.sections.some(section => {
       return section.registrations
         .some(id => args === this._registry[id].command);
     });
     if (!staleBuffer) return;
+    // Re-buffer, removing any newly invisible commands and re-categorizing.
+    let registrations = this._buffer.sections
+      .map(section => section.registrations)
+      .reduce((acc, ids) => { return acc.concat(ids); }, [] as string[]);
+    this._saveState();
+    if (this._buffer.search) {
+      this._bufferSearchItems(registrations);
+    } else {
+      this._bufferItems(registrations);
+    }
+  }
+
+  /**
+   * Save the current selection state and apply it after the next update.
+   */
+  private _saveState(): void {
     // Remember the currently active node.
     let active = this._findActive();
     let current = active ? active.getAttribute(REGISTRATION_ID) : null;
-    // Re-buffer, removing any newly invisible commands and re-categorizing.
-    let registrations = this._buffer.map(section => section.registrations)
-      .reduce((acc, ids) => { return acc.concat(ids); }, [] as string[]);
-    this._bufferItems(registrations);
     // Reset state.
     this._onceAfterUpdate = () => {
       // Reactivate the correct node after re-render.
@@ -750,10 +779,10 @@ class CommandPalette extends Widget {
         let selector = `[${REGISTRATION_ID}="${current}"]`;
         let target = this.node.querySelector(selector) as HTMLElement;
         if (!target || !this._registry[current].isEnabled) return;
-        this._activateNode(target);
+        let scrollIntoView = scrollTest(this.contentNode, target);
+        this._activateNode(target, scrollIntoView);
       }
     }
-    this.update();
   }
 
   /**
@@ -775,15 +804,20 @@ class CommandPalette extends Widget {
    * Sort the sections by title and their commands by title.
    */
   private _sort(): void {
-    this._buffer.sort((a, b) => { return a.title.localeCompare(b.title); });
-    this._buffer.forEach(section => section.registrations.sort((a, b) => {
-      let textA = this._registry[a].text;
-      let textB = this._registry[b].text;
-      return textA.localeCompare(textB);
-    }));
+    this._buffer.sections
+      .sort((a, b) => { return a.title.localeCompare(b.title); });
+    this._buffer.sections
+      .forEach(section => section.registrations.sort((a, b) => {
+        let textA = this._registry[a].text;
+        let textB = this._registry[b].text;
+        return textA.localeCompare(textB);
+      }));
   }
 
-  private _buffer: ICommandPaletteSection[] = [];
+  private _buffer: {
+    sections: ICommandPaletteSection[];
+    search: boolean;
+  } = Object.create(null);
   private _onceAfterUpdate: () => void = null;
   private _registry: { [id: string]: CommandItem; } = Object.create(null);
 }
