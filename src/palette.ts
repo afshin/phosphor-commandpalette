@@ -565,15 +565,21 @@ class CommandPalette extends Widget {
       this.inputNode.blur();
       return;
     }
-    event.preventDefault();
-    event.stopPropagation();
-    if (keyCode === UP_ARROW) {
+    // The shift-↑ combination is like shift-home on Macs so it is ignored.
+    if (keyCode === UP_ARROW && !event.shiftKey) {
+      event.preventDefault();
+      event.stopPropagation();
       return this._activate(ScrollDirection.Up);
     }
-    if (keyCode === DOWN_ARROW) {
+    // The shift-↓ combination is like shift-end on Macs so it is ignored.
+    if (keyCode === DOWN_ARROW && !event.shiftKey) {
+      event.preventDefault();
+      event.stopPropagation();
       return this._activate(ScrollDirection.Down);
     }
     if (keyCode === ENTER) {
+      event.preventDefault();
+      event.stopPropagation();
       let active = this._findActiveNode();
       if (!active) {
         return;
