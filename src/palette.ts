@@ -528,9 +528,9 @@ class CommandPalette extends Widget {
    * Handle the `'keydown'` event for the command palette.
    */
   private _evtKeyDown(event: KeyboardEvent): void {
-    let { altKey, ctrlKey, metaKey, keyCode } = event;
+    let { altKey, ctrlKey, metaKey, shiftKey, keyCode } = event;
     // Ignore system keyboard shortcuts.
-    if (altKey || ctrlKey || metaKey) {
+    if (altKey || ctrlKey || metaKey || shiftKey) {
       return;
     }
     // Allow all normal (non-navigation) keystrokes to propagate.
@@ -565,21 +565,15 @@ class CommandPalette extends Widget {
       this.inputNode.blur();
       return;
     }
-    // The shift-↑ combination is like shift-home on OSX so it is ignored.
-    if (keyCode === UP_ARROW && !event.shiftKey) {
-      event.preventDefault();
-      event.stopPropagation();
+    event.preventDefault();
+    event.stopPropagation();
+    if (keyCode === UP_ARROW) {
       return this._activate(ScrollDirection.Up);
     }
-    // The shift-↓ combination is like shift-end on OSX so it is ignored.
-    if (keyCode === DOWN_ARROW && !event.shiftKey) {
-      event.preventDefault();
-      event.stopPropagation();
+    if (keyCode === DOWN_ARROW) {
       return this._activate(ScrollDirection.Down);
     }
     if (keyCode === ENTER) {
-      event.preventDefault();
-      event.stopPropagation();
       let active = this._findActiveNode();
       if (!active) {
         return;
