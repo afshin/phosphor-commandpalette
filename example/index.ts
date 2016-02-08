@@ -77,7 +77,6 @@ const p2ItemOptions = [
   createItemOpts('Semitic languages', 'Amharic', 'አማርኛ'),
   createItemOpts('Semitic languages', 'Hebrew', 'עברית'),
   createItemOpts('Semitic languages', 'Tigrinya', 'ትግርኛ'),
-  createItemOpts('Semitic languages', 'Tigrinya', 'ትግርኛ'),
 
   createItemOpts('Japonic languages', 'Japanese', '日本語'),
   createItemOpts('Japonic languages', 'Ryukyuan languages', '琉球語派'),

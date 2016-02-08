@@ -528,9 +528,9 @@ class CommandPalette extends Widget {
    * Handle the `'keydown'` event for the command palette.
    */
   private _evtKeyDown(event: KeyboardEvent): void {
-    let { altKey, ctrlKey, metaKey, keyCode } = event;
+    let { altKey, ctrlKey, metaKey, shiftKey, keyCode } = event;
     // Ignore system keyboard shortcuts.
-    if (altKey || ctrlKey || metaKey) {
+    if (altKey || ctrlKey || metaKey || shiftKey) {
       return;
     }
     // Allow all normal (non-navigation) keystrokes to propagate.
