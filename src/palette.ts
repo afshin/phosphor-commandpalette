@@ -565,13 +565,13 @@ class CommandPalette extends Widget {
       this.inputNode.blur();
       return;
     }
-    // The shift-↑ combination is like shift-home on Macs so it is ignored.
+    // The shift-↑ combination is like shift-home on OSX so it is ignored.
     if (keyCode === UP_ARROW && !event.shiftKey) {
       event.preventDefault();
       event.stopPropagation();
       return this._activate(ScrollDirection.Up);
     }
-    // The shift-↓ combination is like shift-end on Macs so it is ignored.
+    // The shift-↓ combination is like shift-end on OSX so it is ignored.
     if (keyCode === DOWN_ARROW && !event.shiftKey) {
       event.preventDefault();
       event.stopPropagation();
