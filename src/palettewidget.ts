@@ -585,10 +585,11 @@ class CommandPalette extends Widget {
     let oldNode = children[this._activeIndex] as HTMLElement;
     let newNode = children[index] as HTMLElement;
     this._activeIndex = index;
-    let scroll = !!newNode && Private.scrollTest(content, newNode);
     if (oldNode) oldNode.classList.remove(ACTIVE_CLASS);
     if (newNode) newNode.classList.add(ACTIVE_CLASS);
-    if (scroll) newNode.scrollIntoView(alignToTop);
+    if (newNode) requestAnimationFrame(() => {
+      Private.scrollIfNeeded(content, newNode, alignToTop);
+    });
   }
 
   /**
@@ -714,19 +715,19 @@ namespace CommandPalette {
  */
 namespace Private {
   /**
-   * Test whether a child is vertically scrolled outside a parent.
+   * Scroll an element into view if needed.
    *
-   * @param parent - The parent element for the test.
+   * @param area - The scroll area element.
    *
-   * @param child - The child element for the test.
+   * @param elem - The element of interest.
    *
-   * @returns `true` if part of the child lies outside the vertical
-   *   bounds of the parent, `false` otherwise.
+   * @param alignToTop - Whether to align to top or bottom edge.
    */
   export
-  function scrollTest(parent: HTMLElement, child: HTMLElement): boolean {
-    let pr = parent.getBoundingClientRect();
-    let cr = child.getBoundingClientRect();
-    return cr.top < pr.top || cr.bottom > pr.bottom;
+  function scrollIfNeeded(area: HTMLElement, elem: HTMLElement, alignToTop: boolean): void {
+    let ar = area.getBoundingClientRect();
+    let er = elem.getBoundingClientRect();
+    let scroll = er.top < ar.top || er.bottom > ar.bottom;
+    if (scroll) elem.scrollIntoView(alignToTop);
   }
 }
