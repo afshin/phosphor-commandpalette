@@ -55,37 +55,37 @@ const CONTENT_CLASS = 'p-CommandPalette-content';
 const HEADER_CLASS = 'p-CommandPalette-header';
 
 /**
- * The class name added to a palette item.
+ * The class name added to a palette command.
  */
-const ITEM_CLASS = 'p-CommandPalette-item';
+const COMMAND_CLASS = 'p-CommandPalette-command';
 
 /**
- * The class name added to item the wrapper around item text (excludes icon).
+ * The class name added to the command content node.
  */
-const ITEM_CONTENT_CLASS = 'p-CommandPalette-itemContent';
+const COMMAND_CONTENT_CLASS = 'p-CommandPalette-commandContent';
 
 /**
- * The class name added to item icons.
+ * The class name added to a command icon node.
  */
-const ITEM_ICON_CLASS = 'p-CommandPalette-itemIcon';
+const COMMAND_ICON_CLASS = 'p-CommandPalette-commandIcon';
 
 /**
- * The class name added to item titles.
+ * The class name added to a command text node.
  */
-const ITEM_TEXT_CLASS = 'p-CommandPalette-itemText';
+const COMMAND_TEXT_CLASS = 'p-CommandPalette-commandText';
 
 /**
- * The class name added to item shortcuts.
+ * The class name added to a command shortcut node.
  */
-const ITEM_SHORTCUT_CLASS = 'p-CommandPalette-itemShortcut';
+const COMMAND_SHORTCUT_CLASS = 'p-CommandPalette-commandShortcut';
 
 /**
- * The class name added to item captions.
+ * The class name added to a command caption node.
  */
-const ITEM_CAPTION_CLASS = 'p-CommandPalette-itemCaption';
+const COMMAND_CAPTION_CLASS = 'p-CommandPalette-commandCaption';
 
 /**
- * The class name added to the active palette item.
+ * The class name added to the active palette header or command.
  */
 const ACTIVE_CLASS = 'p-mod-active';
 
@@ -153,26 +153,26 @@ class CommandPalette extends Widget {
   }
 
   /**
-   * Create a new item node for a command palette.
+   * Create a new command node for a command palette.
    *
-   * @returns A new DOM node for a palette section item.
+   * @returns A new DOM node for a palette section command.
    *
    * #### Notes
    * This method may be reimplemented to create custom items.
    */
-  static createItemNode(): HTMLElement {
+  static createCommandNode(): HTMLElement {
     let node = document.createElement('li');
     let content = document.createElement('div');
     let icon = document.createElement('span');
     let text = document.createElement('span');
     let caption = document.createElement('span');
     let shortcut = document.createElement('span');
-    node.className = ITEM_CLASS;
-    content.className = ITEM_CONTENT_CLASS;
-    icon.className = ITEM_ICON_CLASS;
-    text.className = ITEM_TEXT_CLASS;
-    caption.className = ITEM_CAPTION_CLASS;
-    shortcut.className = ITEM_SHORTCUT_CLASS;
+    node.className = COMMAND_CLASS;
+    content.className = COMMAND_CONTENT_CLASS;
+    icon.className = COMMAND_ICON_CLASS;
+    text.className = COMMAND_TEXT_CLASS;
+    caption.className = COMMAND_CAPTION_CLASS;
+    shortcut.className = COMMAND_SHORTCUT_CLASS;
     content.appendChild(shortcut);
     content.appendChild(text);
     content.appendChild(caption);
@@ -186,13 +186,13 @@ class CommandPalette extends Widget {
    *
    * @param node - The header node which should be updated.
    *
-   * @param data - The data object to use for the header state.
+   * @param data - The data object to use for the node state.
    *
    * #### Notes
-   * This is called automatically when the header should be updated.
+   * This is called automatically when the node should be updated.
    *
    * If the [[createHeaderNode]] method is reimplemented, this method
-   * should also be reimplemented so that the header state is properly
+   * should also be reimplemented so that the node state is properly
    * updated.
    */
   static updateHeaderNode(node: HTMLElement, data: IHeaderResult): void {
@@ -201,31 +201,31 @@ class CommandPalette extends Widget {
   }
 
   /**
-   * Update an item node to reflect the given data.
+   * Update a command node to reflect the given data.
    *
-   * @param node - The item node which should be updated.
+   * @param node - The command node which should be updated.
    *
-   * @param data - The data object to use for the item state.
+   * @param data - The data object to use for the node state.
    *
    * #### Notes
-   * This is called automatically when the item should be updated.
+   * This is called automatically when the node should be updated.
    *
    * If the [[createHeaderNode]] method is reimplemented, this method
-   * should also be reimplemented so that the item state is properly
+   * should also be reimplemented so that the node state is properly
    * updated.
    */
-  static updateItemNode(node: HTMLElement, data: ICommandResult): void {
+  static updateCommandNode(node: HTMLElement, data: ICommandResult): void {
     let icon = node.firstChild as HTMLElement;
     let content = icon.nextSibling as HTMLElement;
     let shortcut = content.firstChild as HTMLElement;
     let text = shortcut.nextSibling as HTMLElement;
     let caption = text.nextSibling as HTMLElement;
 
-    let itemClass = ITEM_CLASS;
+    let itemClass = COMMAND_CLASS;
     if (data.className) itemClass += ' ' + data.className;
     node.className = itemClass;
 
-    let iconClass = ITEM_ICON_CLASS;
+    let iconClass = COMMAND_ICON_CLASS;
     if (data.icon) iconClass += ' ' + data.icon;
     icon.className = iconClass;
 
@@ -536,10 +536,10 @@ class CommandPalette extends Widget {
     let renderCommand = (data: ICommandResult) => {
       let node = commandPool[commandPoolIndex++];
       if (!node) {
-        node = ctor.createItemNode();
+        node = ctor.createCommandNode();
         commandPool.push(node);
       }
-      ctor.updateItemNode(node, data);
+      ctor.updateCommandNode(node, data);
       return node;
     };
 
