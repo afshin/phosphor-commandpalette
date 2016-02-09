@@ -328,7 +328,7 @@ class CommandPalette extends Widget {
     } else {
       i = 0;
     }
-    this._activate(i, true);
+    this._activate(i);
   }
 
   /**
@@ -352,7 +352,7 @@ class CommandPalette extends Widget {
     } else {
       i = this._results.length - 1;
     }
-    this._activate(i, false);
+    this._activate(i);
   }
 
   /**
@@ -380,7 +380,7 @@ class CommandPalette extends Widget {
       let n = this._results.length;
       i = j + 1 >= n ? 0 : j + 1;
     }
-    this._activate(i, false);
+    this._activate(i);
   }
 
   /**
@@ -408,7 +408,7 @@ class CommandPalette extends Widget {
       let n = this._results.length;
       i = j - 1 < 0 ? n - 1 : j - 1;
     }
-    this._activate(i, true);
+    this._activate(i);
   }
 
   /**
@@ -573,7 +573,7 @@ class CommandPalette extends Widget {
    * If the node is scrolled out of view, it will be scrolled into
    * view and aligned according to the `alignTop` parameter.
    */
-  private _activate(index: number, alignToTop: boolean): void {
+  private _activate(index: number): void {
     let content = this.contentNode;
     let children = content.children;
     if (index < 0 || index >= children.length) {
@@ -588,7 +588,7 @@ class CommandPalette extends Widget {
     if (oldNode) oldNode.classList.remove(ACTIVE_CLASS);
     if (newNode) newNode.classList.add(ACTIVE_CLASS);
     if (newNode) requestAnimationFrame(() => {
-      Private.scrollIfNeeded(content, newNode, alignToTop);
+      Private.scrollIfNeeded(content, newNode);
     });
   }
 
@@ -611,7 +611,7 @@ class CommandPalette extends Widget {
       target = parent;
     }
     let index = Array.prototype.indexOf.call(content.children, target);
-    this._activate(index, true);
+    this._activate(index);
     this.triggerActive();
   }
 
@@ -720,14 +720,15 @@ namespace Private {
    * @param area - The scroll area element.
    *
    * @param elem - The element of interest.
-   *
-   * @param alignToTop - Whether to align to top or bottom edge.
    */
   export
-  function scrollIfNeeded(area: HTMLElement, elem: HTMLElement, alignToTop: boolean): void {
+  function scrollIfNeeded(area: HTMLElement, elem: HTMLElement): void {
     let ar = area.getBoundingClientRect();
     let er = elem.getBoundingClientRect();
-    let scroll = er.top < ar.top || er.bottom > ar.bottom;
-    if (scroll) elem.scrollIntoView(alignToTop);
+    if (er.top < ar.top) {
+      area.scrollTop -= ar.top - er.top;
+    } else if (er.bottom > ar.bottom) {
+      area.scrollTop += er.bottom - ar.bottom;
+    }
   }
 }
