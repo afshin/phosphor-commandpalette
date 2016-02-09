@@ -369,7 +369,8 @@ class CommandPalette extends Widget {
    */
   activateNext(target = ActivationTarget.Any): void {
     let i: number;
-    let j = this._activeIndex;
+    let k = this._activeIndex + 1;
+    let j = k >= this._results.length ? 0 : k;
     if (target === ActivationTarget.Header) {
       let type = SearchResultType.Header;
       i = arrays.findIndex(this._results, r => r.type === type, j, true);
@@ -377,8 +378,7 @@ class CommandPalette extends Widget {
       let type = SearchResultType.Command;
       i = arrays.findIndex(this._results, r => r.type === type, j, true);
     } else {
-      let n = this._results.length;
-      i = j + 1 >= n ? 0 : j + 1;
+      i = j;
     }
     this._activate(i);
   }
@@ -397,7 +397,8 @@ class CommandPalette extends Widget {
    */
   activatePrevious(target = ActivationTarget.Any): void {
     let i: number;
-    let j = this._activeIndex;
+    let k = this._activeIndex;
+    let j = k <= 0 ? this._results.length - 1 : k - 1;
     if (target === ActivationTarget.Header) {
       let type = SearchResultType.Header;
       i = arrays.rfindIndex(this._results, r => r.type === type, j, true);
@@ -405,8 +406,7 @@ class CommandPalette extends Widget {
       let type = SearchResultType.Command;
       i = arrays.rfindIndex(this._results, r => r.type === type, j, true);
     } else {
-      let n = this._results.length;
-      i = j - 1 < 0 ? n - 1 : j - 1;
+      i = j;
     }
     this._activate(i);
   }
@@ -558,8 +558,8 @@ class CommandPalette extends Widget {
     // Update the content node with the rendered search results.
     content.appendChild(fragment);
 
-    // If there is query text, highlight the first item. Otherwise,
-    // reset the scroll position to the top of the content area.
+    // If there is query text, highlight the first command item.
+    // Otherwise, reset the content scroll position to the top.
     if (category || text) {
       this.activateFirst(ActivationTarget.Command);
     } else {
