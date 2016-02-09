@@ -32,7 +32,7 @@
   },
   "scripts": {
     "clean": "rimraf lib",
-    "clean:example": "rimraf example/build && rimraf example/node_modules/phosphor-commandpalette",
+    "clean:example": "rimraf example/index.js && rimraf example/bundle.js && rimraf example/node_modules/phosphor-commandpalette",
     "build:example": "npm run clean:example && cd example && npm install && tsc && webpack --config ./webpack.conf.js",
     "build:src": "tsc --project src",
     "build:css": "node scripts/copycss.js",

@@ -15,6 +15,8 @@ import {
  CommandPalette, IStandardPaletteItemOptions, StandardPaletteModel
 } from 'phosphor-commandpalette';
 
+import './index.css';
+
 
 const p1 = new CommandPalette();
 const p2 = new CommandPalette();
