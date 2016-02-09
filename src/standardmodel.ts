@@ -302,17 +302,15 @@ class StandardPaletteModel extends AbstractPaletteModel {
   /**
    * Search the palette model for matching commands.
    *
-   * @param query - The query text to match against the model items.
-   *   The query should take the form `(<category>:)?<text>`. If a
-   *   category is specified, the search will be limited to items
-   *   which match the category.
+   * @param category - The category match against the model items. If
+   *   this is an empty string, all item categories will be matched.
+   *
+   * @param text - The text to match against the model items. If this
+   *   is an empty string, all items will be matched.
    *
    * @returns An array of new search results for the query.
    */
-  search(query: string): ISearchResult[] {
-    // Split the query into the category and text components.
-    let { category, text } = AbstractPaletteModel.splitQuery(query);
-
+  search(category: string, text: string): ISearchResult[] {
     // Collect a mapping of the matching categories. The mapping will
     // only contain categories which match the provided query text.
     // If the category is an empty string, all categories will be

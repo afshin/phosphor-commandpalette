@@ -7,7 +7,6 @@
   "dependencies": {
     "phosphor-arrays": "^1.0.6",
     "phosphor-messaging": "^1.0.6",
-    "phosphor-properties": "^2.0.0",
     "phosphor-signaling": "^1.2.0",
     "phosphor-widget": "^1.0.0-rc.1"
   },
@@ -34,7 +33,7 @@
   "scripts": {
     "clean": "rimraf lib",
     "clean:example": "rimraf example/build && rimraf example/node_modules/phosphor-commandpalette",
-    "build:example": "cd example && npm install && tsc && webpack --config ./webpack.conf.js",
+    "build:example": "npm run clean:example && cd example && npm install && tsc && webpack --config ./webpack.conf.js",
     "build:src": "tsc --project src",
     "build:css": "node scripts/copycss.js",
     "build:test": "tsc --project test/src && webpack --config test/webpack.conf.js",
@@ -73,5 +72,5 @@
   "bugs": {
     "url": "https://github.com/phosphorjs/phosphor-commandpalette/issues"
   },
-  "homepage": "https://github.com/phosphorjs/phosphor-commandpalette#readme"
+  "homepage": "https://github.com/phosphorjs/phosphor-commandpalette"
 }

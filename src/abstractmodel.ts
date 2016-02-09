@@ -139,10 +139,11 @@ abstract class AbstractPaletteModel {
   /**
    * Search the palette model for matching commands.
    *
-   * @param query - The query text to match against the model items.
-   *   The query should take the form `(<category>:)?<text>`. If a
-   *   category is specified, the search will be limited to items
-   *   which match the category.
+   * @param category - The category match against the model items. If
+   *   this is an empty string, all item categories will be matched.
+   *
+   * @param text - The text to match against the model items. If this
+   *   is an empty string, all items will be matched.
    *
    * @returns An array of new search results for the query.
    *
@@ -153,7 +154,7 @@ abstract class AbstractPaletteModel {
    * previously computed search results, the [[changed]] signal should
    * be emitted.
    */
-  abstract search(query: string): ISearchResult[];
+  abstract search(category: string, text: string): ISearchResult[];
 
   /**
    * A signal emitted when the potential search results change.
@@ -164,60 +165,6 @@ abstract class AbstractPaletteModel {
    */
   get changed(): ISignal<AbstractPaletteModel, void> {
     return AbstractPaletteModelPrivate.changedSignal.bind(this);
-  }
-}
-
-
-/**
- * The namespace for the `AbstractPaletteModel` class statics.
- */
-export
-namespace AbstractPaletteModel {
-  /**
-   * Split a query string into its category and text components.
-   *
-   * @param query - A query string of the form `(:<category>:)?<text>`.
-   *
-   * @returns The `category` and `text` components of the query with
-   *   leading and trailing whitespace removed.
-   */
-  export
-  function splitQuery(query: string): { category: string, text: string } {
-    query = query.trim();
-    if (query[0] !== ':') {
-      return { category: '', text: query };
-    }
-    let i = query.indexOf(':', 1);
-    if (i === -1) {
-      return { category: query.slice(1).trim(), text: '' };
-    }
-    let category = query.slice(1, i).trim();
-    let text = query.slice(i + 1).trim();
-    return { category, text };
-  }
-
-  /**
-   * Join category and text components into a query string.
-   *
-   * @param category - The category for the query or `''`.
-   *
-   * @param text - The text for the query or `''`.
-   *
-   * @returns The joined query string for the components.
-   */
-  export
-  function joinQuery(category: string, text: string): string {
-    let query: string;
-    if (category && text) {
-      query = `:${category.trim()}: ${text.trim()}`;
-    } else if (category) {
-      query = `:${category.trim()}: `;
-    } else if (text) {
-      query = text.trim();
-    } else {
-      query = '';
-    }
-    return query;
   }
 }
 

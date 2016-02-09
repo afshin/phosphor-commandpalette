@@ -26,23 +26,35 @@
 }
 
 
-.p-CommandPalette-item {
+.p-CommandPalette-header {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+
+.p-CommandPalette-command {
   display: flex;
   flex-direction: row;
 }
 
 
-.p-CommandPalette-itemIcon {
+.p-CommandPalette-commandIcon {
   flex: 0 0 auto;
 }
 
 
-.p-CommandPalette-itemContent {
+.p-CommandPalette-commandContent {
   flex: 1 1 auto;
 }
 
 
-.p-CommandPalette-itemText {
+.p-CommandPalette-commandShortcut {
+  float: right;
+}
+
+
+.p-CommandPalette-commandText {
   display: block;
   overflow: hidden;
   white-space: nowrap;
@@ -50,11 +62,6 @@
 }
 
 
-.p-CommandPalette-itemShortcut {
-  float: right;
-}
-
-
-.p-CommandPalette-itemCaption {
+.p-CommandPalette-commandCaption {
   display: block;
 }
