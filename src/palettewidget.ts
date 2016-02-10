@@ -443,6 +443,8 @@ class CommandPalette extends Widget {
       this.inputNode.select();
       handler(args);
     }
+    // Deactivate the item that was just fired.
+    this._activate(-1);
   }
 
   /**
