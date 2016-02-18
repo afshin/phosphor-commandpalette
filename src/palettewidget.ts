@@ -411,6 +411,14 @@ class CommandPalette extends Widget {
     this._activate(i);
   }
 
+  processMessage(msg: Message): void {
+    super.processMessage(msg);
+    if (msg.type === 'focus-request') {
+      this.inputNode.focus();
+      this.inputNode.select();
+    }
+  }
+
   /**
    * Trigger the currently active item in the palette.
    *
